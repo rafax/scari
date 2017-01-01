@@ -52,11 +52,11 @@ func (h handlers) getAllJobs(w http.ResponseWriter, req *http.Request) {
 }
 
 type JobsResponse struct {
-	Jobs []scari.Job
+	Jobs []scari.Job `json:"jobs"`
 }
 
 type JobResponse struct {
-	Job scari.Job
+	Job scari.Job `json:"job"`
 }
 
 type JobRequest struct {
