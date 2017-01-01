@@ -1,5 +1,6 @@
 Build image and tag as scari-worker:
-docker build . -t=scari-worker
+
+`docker build . -t=scari-worker`
 
 Download to mp3:
 
