@@ -26,3 +26,11 @@ const (
 )
 
 type LeaseID string
+
+type JobsResponse struct {
+	Jobs []Job `json:"jobs"`
+}
+
+type JobResponse struct {
+	Job Job `json:"job"`
+}

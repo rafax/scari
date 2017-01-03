@@ -40,7 +40,7 @@ func (h handlers) createJob(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		h.r.JSON(w, 500, map[string]string{"error": err.Error()})
 	}
-	h.r.JSON(w, 200, JobResponse{Job: *j})
+	h.r.JSON(w, 200, scari.JobResponse{Job: *j})
 }
 
 func (h handlers) getAllJobs(w http.ResponseWriter, req *http.Request) {
@@ -48,15 +48,7 @@ func (h handlers) getAllJobs(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		h.r.JSON(w, 500, map[string]string{"error": err.Error()})
 	}
-	h.r.JSON(w, 200, JobsResponse{Jobs: jobs})
-}
-
-type JobsResponse struct {
-	Jobs []scari.Job `json:"jobs"`
-}
-
-type JobResponse struct {
-	Job scari.Job `json:"job"`
+	h.r.JSON(w, 200, scari.JobsResponse{Jobs: jobs})
 }
 
 type JobRequest struct {
