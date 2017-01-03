@@ -22,6 +22,7 @@ var (
 	videoSuffix   = []string{"--recode-video", "mp4"}
 	audioParams   = append(commandParams, audioSuffix...)
 	videoParams   = append(commandParams, videoSuffix...)
+	seen          = map[scari.JobID]bool{}
 )
 
 func main() {
@@ -83,16 +84,11 @@ func fetchOne(apiserver string) (*scari.Job, error) {
 	if len(jr.Jobs) == 0 {
 		return nil, nil
 	}
-	pending := 0
-	var first *scari.Job
 	for _, j := range jr.Jobs {
-		if j.Status == scari.Pending {
-			if first == nil {
-				first = &j
-			}
-			pending++
+		if j.Status == scari.Pending && !seen[j.ID] {
+			seen[j.ID] = true
+			return &j, nil
 		}
 	}
-	log.Infof("Found %v pending jobs, returning %v", pending, *first)
-	return first, nil
+	return nil, nil
 }
