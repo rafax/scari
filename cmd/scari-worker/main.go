@@ -11,8 +11,6 @@ import (
 
 	"os/exec"
 
-	"errors"
-
 	"github.com/rafax/scari"
 )
 
@@ -39,10 +37,17 @@ func main() {
 		}
 	}
 }
+
+type noPendingJobs error
+
 func doIt(apiserver string) {
 	j, err := fetchOne(apiserver)
 	if err != nil {
 		log.Error(err)
+		return
+	}
+	if j == nil {
+		log.Info("No pending jobs found")
 		return
 	}
 	var params []string
@@ -76,8 +81,7 @@ func fetchOne(apiserver string) (*scari.Job, error) {
 		return nil, err
 	}
 	if len(jr.Jobs) == 0 {
-		log.Info("No jobs found")
-		return nil, errors.New("No jobs found")
+		return nil, nil
 	}
 	pending := 0
 	var first *scari.Job
