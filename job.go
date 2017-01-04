@@ -34,3 +34,8 @@ type JobsResponse struct {
 type JobResponse struct {
 	Job Job `json:"job"`
 }
+
+type LeaseJobResponse struct {
+	Job     Job     `json:"job"`
+	LeaseID LeaseID `json:"leaseId"`
+}

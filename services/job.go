@@ -3,35 +3,29 @@ package services
 import (
 	"errors"
 	"sync"
-	"time"
 
 	scari "github.com/rafax/scari"
 	uuid "github.com/satori/go.uuid"
 )
 
-type leasedJob struct {
-	leaseID     string
-	leasedUntil time.Time
-	scari.Job
-}
-
 type JobStore interface {
 	Put(j scari.Job) error
 	Get(id scari.JobID) (*scari.Job, error)
 	GetAll() ([]scari.Job, error)
+	LeaseOne(scari.LeaseID) (*scari.Job, error)
 }
 
 type JobService interface {
 	New(url string, output scari.OutputType) (*scari.Job, error)
 	Get(id scari.JobID) (*scari.Job, error)
 	GetAll() ([]scari.Job, error)
-	Lease(id scari.JobID, leaseID scari.LeaseID) (time.Time, error)
+	LeaseOne() (*scari.Job, scari.LeaseID, error)
 }
 
 type mapJobStore struct {
 	jobsLock   sync.RWMutex
 	jobs       map[scari.JobID]scari.Job
-	leasedJobs map[scari.LeaseID]leasedJob
+	leasedJobs map[scari.LeaseID]scari.JobID
 }
 
 func (m *mapJobStore) Get(id scari.JobID) (*scari.Job, error) {
@@ -63,12 +57,27 @@ func (m *mapJobStore) Put(j scari.Job) error {
 	return nil
 }
 
+func (m *mapJobStore) LeaseOne(lid scari.LeaseID) (*scari.Job, error) {
+	for _, j := range m.jobs {
+		if j.Status == scari.Pending {
+			m.jobsLock.Lock()
+			defer m.jobsLock.Unlock()
+			j.Status = scari.Processing
+			m.jobs[j.ID] = j
+			m.leasedJobs[lid] = j.ID
+			// TODO expire locks
+			return &j, nil
+		}
+	}
+	return nil, nil
+}
+
 type jobService struct {
 	store JobStore
 }
 
 func NewJobService() JobService {
-	return &jobService{store: &mapJobStore{jobs: map[scari.JobID]scari.Job{}, leasedJobs: map[scari.LeaseID]leasedJob{}}}
+	return &jobService{store: &mapJobStore{jobs: map[scari.JobID]scari.Job{}, leasedJobs: map[scari.LeaseID]scari.JobID{}}}
 }
 
 func (js *jobService) New(source string, output scari.OutputType) (*scari.Job, error) {
@@ -86,6 +95,11 @@ func (js *jobService) GetAll() ([]scari.Job, error) {
 	return js.store.GetAll()
 }
 
-func (js *jobService) Lease(id scari.JobID, leaseID scari.LeaseID) (time.Time, error) {
-	return time.Now().Add(60 * time.Second), nil
+func (js *jobService) LeaseOne() (*scari.Job, scari.LeaseID, error) {
+	lid := scari.LeaseID(uuid.NewV4().String())
+	j, err := js.store.LeaseOne(lid)
+	if err != nil {
+		return nil, "", err
+	}
+	return j, lid, nil
 }
