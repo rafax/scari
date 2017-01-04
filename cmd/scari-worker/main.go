@@ -15,14 +15,12 @@ import (
 )
 
 var (
-	c             = http.Client{}
-	command       = "youtube-dl"
-	commandParams = []string{"-o", "/out/%(title)s.%(ext)s"}
-	audioSuffix   = []string{"-x", "--audio-format", "mp3"}
-	videoSuffix   = []string{"--recode-video", "mp4"}
-	audioParams   = append(commandParams, audioSuffix...)
-	videoParams   = append(commandParams, videoSuffix...)
-	seen          = map[scari.JobID]bool{}
+	c           = http.Client{}
+	command     = "youtube-dl"
+	outDir      string
+	audioParams []string
+	videoParams []string
+	seen        = map[scari.JobID]bool{}
 )
 
 func main() {
@@ -30,6 +28,11 @@ func main() {
 	if apiserver == "" {
 		apiserver = "http://localhost:3001/"
 	}
+	outDir = os.Getenv("SCARI_OUTDIR")
+	if outDir == "" {
+		outDir = "/tmp/out"
+	}
+	initParams(outDir)
 	doIt(apiserver)
 	for {
 		select {
@@ -37,6 +40,14 @@ func main() {
 			doIt(apiserver)
 		}
 	}
+}
+
+func initParams(outDir string) {
+	commandParams := []string{"-o", outDir + "%(title)s.%(ext)s"}
+	audioSuffix := []string{"-x", "--audio-format", "mp3"}
+	videoSuffix := []string{"--recode-video", "mp4"}
+	audioParams = append(commandParams, audioSuffix...)
+	videoParams = append(commandParams, videoSuffix...)
 }
 
 type noPendingJobs error
@@ -58,7 +69,7 @@ func doIt(apiserver string) {
 		params = videoParams
 	}
 	c := exec.Command(command, append(params, j.Source)...)
-	c.Dir = "/out"
+	c.Dir = outDir
 	log.Infof("Starting %v", c)
 	out, err := c.Output()
 	if err != nil {
@@ -68,27 +79,21 @@ func doIt(apiserver string) {
 }
 
 func fetchOne(apiserver string) (*scari.Job, error) {
-	r, err := c.Get(apiserver + "jobs")
+	r, err := c.Post(apiserver+"jobs/lease", "application/json", nil)
 	if err != nil {
 		return nil, err
+	}
+	if r.StatusCode == 204 {
+		return nil, nil
 	}
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
 		return nil, err
 	}
-	var jr scari.JobsResponse
+	var jr scari.LeaseJobResponse
 	err = json.Unmarshal(body, &jr)
 	if err != nil {
 		return nil, err
 	}
-	if len(jr.Jobs) == 0 {
-		return nil, nil
-	}
-	for _, j := range jr.Jobs {
-		if j.Status == scari.Pending && !seen[j.ID] {
-			seen[j.ID] = true
-			return &j, nil
-		}
-	}
-	return nil, nil
+	return &jr.Job, nil
 }

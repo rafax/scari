@@ -27,7 +27,7 @@ func New(js services.JobService) Handlers {
 func (h handlers) Register(r *mux.Router) {
 	r.HandleFunc("/jobs", h.createJob).Methods("POST")
 	r.HandleFunc("/jobs", h.getAllJobs)
-
+	r.HandleFunc("/jobs/lease", h.leaseJob).Methods("POST")
 }
 
 func (h handlers) createJob(w http.ResponseWriter, req *http.Request) {
@@ -49,6 +49,17 @@ func (h handlers) getAllJobs(w http.ResponseWriter, req *http.Request) {
 		h.r.JSON(w, 500, map[string]string{"error": err.Error()})
 	}
 	h.r.JSON(w, 200, scari.JobsResponse{Jobs: jobs})
+}
+
+func (h handlers) leaseJob(w http.ResponseWriter, req *http.Request) {
+	job, lid, err := h.js.LeaseOne()
+	if err != nil {
+		h.r.JSON(w, 500, map[string]string{"error": err.Error()})
+	}
+	if job == nil {
+		h.r.JSON(w, 204, map[string]string{})
+	}
+	h.r.JSON(w, 200, scari.LeaseJobResponse{Job: *job, LeaseID: lid})
 }
 
 type JobRequest struct {
