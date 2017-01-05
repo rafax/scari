@@ -55,9 +55,11 @@ func (h handlers) leaseJob(w http.ResponseWriter, req *http.Request) {
 	job, lid, err := h.js.LeaseOne()
 	if err != nil {
 		h.r.JSON(w, 500, map[string]string{"error": err.Error()})
+		return
 	}
 	if job == nil {
 		h.r.JSON(w, 204, map[string]string{})
+		return
 	}
 	h.r.JSON(w, 200, scari.LeaseJobResponse{Job: *job, LeaseID: lid})
 }
