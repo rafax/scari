@@ -21,7 +21,7 @@ func main() {
 			time.Sleep(10 * time.Second)
 		}
 		for _, j := range processed {
-			log.Infof("Processed %v", j)
+			log.Infof("Processed %+v", j)
 		}
 	}
 }

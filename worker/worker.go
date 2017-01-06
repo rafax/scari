@@ -2,25 +2,27 @@ package worker
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"os/exec"
+	"path"
+
+	"cloud.google.com/go/storage"
 
 	"github.com/rafax/scari"
+	"golang.org/x/net/context"
 )
 
 type Worker interface {
-	Process() ([]scari.Job, error)
+	Process() ([]ProcessedJob, error)
 }
 
-func New(apiserver string, outDir string) Worker {
-	commandParams := []string{"--restrict-filenames", "-o", outDir + "%(title)s.%(ext)s"}
-	return worker{
-		apiserver: apiserver, outDir: outDir, audioParams: append(commandParams, audioSuffix...),
-		videoParams: append(commandParams, videoSuffix...), c: http.DefaultClient}
-}
-
-type noPendingJobs error
+const (
+	bucketName = "scari-666.appspot.com"
+)
 
 var (
 	command     = "youtube-dl"
@@ -36,7 +38,26 @@ type worker struct {
 	c           *http.Client
 }
 
-func (w worker) Process() ([]scari.Job, error) {
+type youtubeDLOutput struct {
+	FileName string `json:"_filename"`
+}
+
+type ProcessedJob struct {
+	Job         scari.Job
+	LeaseID     scari.LeaseID
+	StorageID   string
+	StoragePath string
+	Existed     bool
+}
+
+func New(apiserver string, outDir string) Worker {
+	commandParams := []string{"--print-json", "--restrict-filenames", "-o", outDir + "%(title)s.%(ext)s"}
+	return worker{
+		apiserver: apiserver, outDir: outDir, audioParams: append(commandParams, audioSuffix...),
+		videoParams: append(commandParams, videoSuffix...), c: http.DefaultClient}
+}
+
+func (w worker) Process() ([]ProcessedJob, error) {
 	j, err := w.fetch()
 	if err != nil {
 		return nil, err
@@ -44,8 +65,15 @@ func (w worker) Process() ([]scari.Job, error) {
 	if j == nil {
 		return nil, nil
 	}
-
-	return []scari.Job{*j}, err
+	out, err := w.convert(*j)
+	if err != nil {
+		return nil, err
+	}
+	url, existed, err := w.upload(out)
+	if err != nil {
+		return nil, err
+	}
+	return []ProcessedJob{ProcessedJob{Job: *j, StoragePath: url, Existed: existed}}, err
 }
 
 func (w worker) fetch() (*scari.Job, error) {
@@ -68,7 +96,7 @@ func (w worker) fetch() (*scari.Job, error) {
 	return &jr.Job, nil
 }
 
-func (w worker) convert(j scari.Job) {
+func (w worker) convert(j scari.Job) (string, error) {
 	var params []string
 	if j.Output == scari.AUDIO {
 		params = w.audioParams
@@ -77,8 +105,51 @@ func (w worker) convert(j scari.Job) {
 	}
 	c := exec.Command(command, append(params, j.Source)...)
 	c.Dir = w.outDir
-	err := c.Run()
+	output, err := c.Output()
 	if err != nil {
-		return nil, err
+		return "", err
 	}
+	var out youtubeDLOutput
+	err = json.Unmarshal(output, &out)
+	if err != nil {
+		return "", err
+	}
+	return out.FileName, nil
+}
+
+func (w worker) upload(filePath string) (string, bool, error) {
+	f, err := os.Open(filePath)
+	if err != nil {
+		return "", false, err
+	}
+	const publicURL = "https://storage.googleapis.com/%s/%s"
+	name := path.Base(filePath)
+	storageLocation := fmt.Sprintf(publicURL, bucketName, name)
+	if err != nil {
+		return "", false, err
+	}
+	ctx := context.Background()
+	client, err := storage.NewClient(ctx)
+	if err != nil {
+		return "", false, err
+	}
+	bkt := client.Bucket(bucketName)
+	_, err = bkt.Object(name).Attrs(ctx)
+	if err == nil {
+		// object exists
+		return storageLocation, true, nil
+	}
+	if err != nil && err != storage.ErrObjectNotExist {
+		return "", false, err
+	}
+	writer := bkt.Object(name).If(storage.Conditions{DoesNotExist: true}).NewWriter(ctx)
+	writer.ACL = []storage.ACLRule{{Entity: storage.AllUsers, Role: storage.RoleReader}}
+	writer.CacheControl = "public, max-age=86400"
+	if _, err := io.Copy(writer, f); err != nil {
+		return "", false, err
+	}
+	if err := writer.Close(); err != nil {
+		return "", false, err
+	}
+	return storageLocation, false, nil
 }
