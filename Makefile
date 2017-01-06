@@ -1,5 +1,5 @@
 scari-worker:
-	go install ./cmd/scari-worker && GOOGLE_APPLICATION_CREDENTIALS=scari-a7ee93b6e4cf.json SCARI_SERVER="http://localhost:3001/" SCARI_OUTDIR="/tmp/out/" scari-worker
+	go install ./cmd/scari-worker && GOOGLE_APPLICATION_CREDENTIALS=scari-8a1786479a6f.json SCARI_SERVER="http://localhost:3001/" SCARI_OUTDIR="/tmp/out/" scari-worker
 
 scari-server:
 	go install ./cmd/scari-server && scari-server
