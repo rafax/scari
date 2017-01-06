@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -58,7 +59,7 @@ func New(apiserver string, outDir string) Worker {
 }
 
 func (w worker) Process() ([]ProcessedJob, error) {
-	j, err := w.fetch()
+	j, lid, err := w.fetch()
 	if err != nil {
 		return nil, err
 	}
@@ -73,27 +74,29 @@ func (w worker) Process() ([]ProcessedJob, error) {
 	if err != nil {
 		return nil, err
 	}
-	return []ProcessedJob{ProcessedJob{Job: *j, StoragePath: url, Existed: existed}}, err
+	pj := ProcessedJob{Job: *j, StoragePath: url, Existed: existed}
+	w.complete(lid, pj)
+	return []ProcessedJob{}, err
 }
 
-func (w worker) fetch() (*scari.Job, error) {
+func (w worker) fetch() (*scari.Job, scari.LeaseID, error) {
 	r, err := w.c.Post(w.apiserver+"jobs/lease", "application/json", nil)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	if r.StatusCode == 204 {
-		return nil, nil
+		return nil, "", nil
 	}
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
 	var jr scari.LeaseJobResponse
 	err = json.Unmarshal(body, &jr)
 	if err != nil {
-		return nil, err
+		return nil, "", err
 	}
-	return &jr.Job, nil
+	return &jr.Job, jr.LeaseID, nil
 }
 
 func (w worker) convert(j scari.Job) (string, error) {
@@ -152,4 +155,17 @@ func (w worker) upload(filePath string) (string, bool, error) {
 		return "", false, err
 	}
 	return storageLocation, false, nil
+}
+
+func (w worker) complete(lid scari.LeaseID, pj ProcessedJob) error {
+	cjr := scari.CompleteJobRequest{LeaseID: lid, StorageURL: pj.StoragePath}
+	body, err := json.Marshal(cjr)
+	if err != nil {
+		return err
+	}
+	_, err = w.c.Post(w.apiserver+"jobs/"+string(pj.Job.ID)+"/complete", "application/json", bytes.NewReader(body))
+	if err != nil {
+		return err
+	}
+	return nil
 }

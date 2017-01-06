@@ -39,3 +39,8 @@ type LeaseJobResponse struct {
 	Job     Job     `json:"job"`
 	LeaseID LeaseID `json:"leaseId"`
 }
+
+type CompleteJobRequest struct {
+	StorageURL string  `json:"storageUrl"`
+	LeaseID    LeaseID `json:"leaseId"`
+}
