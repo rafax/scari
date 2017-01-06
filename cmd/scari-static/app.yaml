@@ -1,0 +1,8 @@
+application: scari-666
+version: v1
+runtime: go
+api_version: go1
+
+handlers:
+- url: /.*
+  script: _go_app
