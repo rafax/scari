@@ -44,3 +44,7 @@ type CompleteJobRequest struct {
 	StorageURL string  `json:"storageUrl"`
 	LeaseID    LeaseID `json:"leaseId"`
 }
+
+const (
+	StorageBucketName = "scari-666.appspot.com"
+)

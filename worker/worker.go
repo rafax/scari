@@ -21,10 +21,6 @@ type Worker interface {
 	Process() ([]ProcessedJob, error)
 }
 
-const (
-	bucketName = "scari-666.appspot.com"
-)
-
 var (
 	command     = "youtube-dl"
 	audioSuffix = []string{"-x", "--audio-format", "mp3"}
@@ -127,7 +123,7 @@ func (w worker) upload(filePath string) (string, bool, error) {
 	}
 	const publicURL = "https://storage.googleapis.com/%s/%s"
 	name := path.Base(filePath)
-	storageLocation := fmt.Sprintf(publicURL, bucketName, name)
+	storageLocation := fmt.Sprintf(publicURL, scari.StorageBucketName, name)
 	if err != nil {
 		return "", false, err
 	}
@@ -136,7 +132,7 @@ func (w worker) upload(filePath string) (string, bool, error) {
 	if err != nil {
 		return "", false, err
 	}
-	bkt := client.Bucket(bucketName)
+	bkt := client.Bucket(scari.StorageBucketName)
 	_, err = bkt.Object(name).Attrs(ctx)
 	if err == nil {
 		// object exists
