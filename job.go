@@ -3,10 +3,11 @@ package scari
 type JobID string
 
 type Job struct {
-	ID     JobID
-	Output OutputType
-	Source string
-	Status JobStatus
+	ID        JobID
+	Output    OutputType
+	Source    string
+	Status    JobStatus
+	StorageID string
 }
 
 type OutputType string
@@ -20,9 +21,9 @@ type JobStatus int
 
 const (
 	Pending    = iota
-	Processing = 2
-	Completed  = 3
-	Failed     = 4
+	Processing = 1
+	Completed  = 2
+	Failed     = 3
 )
 
 type LeaseID string
@@ -38,11 +39,6 @@ type JobResponse struct {
 type LeaseJobResponse struct {
 	Job     Job     `json:"job"`
 	LeaseID LeaseID `json:"leaseId"`
-}
-
-type CompleteJobRequest struct {
-	StorageURL string  `json:"storageUrl"`
-	LeaseID    LeaseID `json:"leaseId"`
 }
 
 const (
