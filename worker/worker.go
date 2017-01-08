@@ -14,6 +14,7 @@ import (
 	"cloud.google.com/go/storage"
 
 	"github.com/rafax/scari"
+	"github.com/rafax/scari/handlers"
 	"golang.org/x/net/context"
 )
 
@@ -40,11 +41,10 @@ type youtubeDLOutput struct {
 }
 
 type ProcessedJob struct {
-	Job         scari.Job
-	LeaseID     scari.LeaseID
-	StorageID   string
-	StoragePath string
-	Existed     bool
+	Job      scari.Job
+	LeaseID  scari.LeaseID
+	FileName string
+	Existed  bool
 }
 
 func New(apiserver string, outDir string) Worker {
@@ -66,11 +66,11 @@ func (w worker) Process() ([]ProcessedJob, error) {
 	if err != nil {
 		return nil, err
 	}
-	url, existed, err := w.upload(out)
+	name, existed, err := w.upload(out)
 	if err != nil {
 		return nil, err
 	}
-	pj := ProcessedJob{Job: *j, StoragePath: url, Existed: existed}
+	pj := ProcessedJob{Job: *j, FileName: name, Existed: false}
 	w.complete(lid, pj)
 	return []ProcessedJob{}, err
 }
@@ -80,7 +80,10 @@ func (w worker) fetch() (*scari.Job, scari.LeaseID, error) {
 	if err != nil {
 		return nil, "", err
 	}
+	defer r.Body.Close()
 	if r.StatusCode == 204 {
+		io.Copy(ioutil.Discard, r.Body)
+
 		return nil, "", nil
 	}
 	body, err := ioutil.ReadAll(r.Body)
@@ -154,14 +157,16 @@ func (w worker) upload(filePath string) (string, bool, error) {
 }
 
 func (w worker) complete(lid scari.LeaseID, pj ProcessedJob) error {
-	cjr := scari.CompleteJobRequest{LeaseID: lid, StorageURL: pj.StoragePath}
+	cjr := handlers.CompleteJobRequest{LeaseID: lid, FileName: pj.FileName}
 	body, err := json.Marshal(cjr)
 	if err != nil {
 		return err
 	}
-	_, err = w.c.Post(w.apiserver+"jobs/"+string(pj.Job.ID)+"/complete", "application/json", bytes.NewReader(body))
+	r, err := w.c.Post(w.apiserver+"jobs/"+string(pj.Job.ID)+"/complete", "application/json", bytes.NewReader(body))
 	if err != nil {
 		return err
 	}
+	io.Copy(ioutil.Discard, r.Body)
+	r.Body.Close()
 	return nil
 }
