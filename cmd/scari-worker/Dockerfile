@@ -1,4 +1,4 @@
-FROM golang:1.8-alpine
+FROM golang:1.8beta2-alpine
 
 RUN apk add --no-cache youtube-dl ffmpeg git
 
