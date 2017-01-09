@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
@@ -19,5 +20,10 @@ func main() {
 	n.Use(negroni.NewRecovery())
 	handlers.New(js).Register(router)
 	n.UseHandler(router)
-	http.ListenAndServe(":3001", n)
+
+	port := os.Getenv("PORT")
+	if port == "" {
+		port = "3001"
+	}
+	http.ListenAndServe(":"+port, n)
 }
