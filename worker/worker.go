@@ -13,6 +13,7 @@ import (
 
 	"cloud.google.com/go/storage"
 
+	log "github.com/Sirupsen/logrus"
 	"github.com/rafax/scari"
 	"github.com/rafax/scari/handlers"
 	"golang.org/x/net/context"
@@ -70,20 +71,24 @@ func (w worker) Process() ([]ProcessedJob, error) {
 	if err != nil {
 		return nil, err
 	}
-	pj := ProcessedJob{Job: *j, FileName: name, Existed: false}
-	w.complete(lid, pj)
+	pj := ProcessedJob{Job: *j, FileName: name, Existed: existed}
+	err = w.complete(lid, pj)
+	if err != nil {
+		return nil, err
+	}
 	return []ProcessedJob{}, err
 }
 
 func (w worker) fetch() (*scari.Job, scari.LeaseID, error) {
+	log.Debugf("Starting fetch")
 	r, err := w.c.Post(w.apiserver+"jobs/lease", "application/json", nil)
 	if err != nil {
 		return nil, "", err
 	}
 	defer r.Body.Close()
 	if r.StatusCode == 204 {
+		log.Debugf("Got 204, no jobs available")
 		io.Copy(ioutil.Discard, r.Body)
-
 		return nil, "", nil
 	}
 	body, err := ioutil.ReadAll(r.Body)
@@ -95,6 +100,7 @@ func (w worker) fetch() (*scari.Job, scari.LeaseID, error) {
 	if err != nil {
 		return nil, "", err
 	}
+	log.Debugf("Received %v with leaseID %v", jr.Job, jr.LeaseID)
 	return &jr.Job, jr.LeaseID, nil
 }
 
@@ -107,6 +113,7 @@ func (w worker) convert(j scari.Job) (string, error) {
 	}
 	c := exec.Command(command, append(params, j.Source)...)
 	c.Dir = w.outDir
+	log.Debugf("Will convert %v with %v", j.ID, c)
 	output, err := c.Output()
 	if err != nil {
 		return "", err
@@ -116,6 +123,7 @@ func (w worker) convert(j scari.Job) (string, error) {
 	if err != nil {
 		return "", err
 	}
+	log.Debugf("Converted %v to %v", j.ID, out.FileName)
 	return out.FileName, nil
 }
 
@@ -144,6 +152,7 @@ func (w worker) upload(filePath string) (string, bool, error) {
 	if err != nil && err != storage.ErrObjectNotExist {
 		return "", false, err
 	}
+	log.Debugf("File %v does not exist in storage", name)
 	writer := bkt.Object(name).If(storage.Conditions{DoesNotExist: true}).NewWriter(ctx)
 	writer.ACL = []storage.ACLRule{{Entity: storage.AllUsers, Role: storage.RoleReader}}
 	writer.CacheControl = "public, max-age=86400"
@@ -153,6 +162,7 @@ func (w worker) upload(filePath string) (string, bool, error) {
 	if err := writer.Close(); err != nil {
 		return "", false, err
 	}
+	log.Debugf("File %v uploaded to %v", storageLocation)
 	return storageLocation, false, nil
 }
 
@@ -162,9 +172,18 @@ func (w worker) complete(lid scari.LeaseID, pj ProcessedJob) error {
 	if err != nil {
 		return err
 	}
+	log.Debugf("Will mark %v as completed", cjr)
 	r, err := w.c.Post(w.apiserver+"jobs/"+string(pj.Job.ID)+"/complete", "application/json", bytes.NewReader(body))
 	if err != nil {
+		log.Debugf("Failed completionwith %v", err)
 		return err
+	}
+	if r.StatusCode/100 != 2 {
+		rbody, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			return err
+		}
+		return fmt.Errorf("Failed to complete %v: got code %v reason %v", pj, r.StatusCode, string(rbody))
 	}
 	io.Copy(ioutil.Discard, r.Body)
 	r.Body.Close()
