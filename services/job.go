@@ -1,8 +1,12 @@
 package services
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"io/ioutil"
 	"net/http"
+	"path"
 	"sync"
 
 	scari "github.com/rafax/scari"
@@ -149,5 +153,23 @@ type mockStorageClient struct {
 }
 
 func (msc *mockStorageClient) Register(fileName string) (string, error) {
-	return fileName, nil
+	sfr := scari.StaticFileRequest{FileName: path.Base(fileName)}
+	body, err := json.Marshal(sfr)
+	if err != nil {
+		return "", err
+	}
+	resp, err := msc.client.Post("http://scari-666.appspot.com/files", "application/json", bytes.NewReader(body))
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	rbody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	sfresp := new(scari.StaticFileResponse)
+	if err = json.Unmarshal(rbody, sfresp); err != nil {
+		return "", err
+	}
+	return sfresp.Id, nil
 }
