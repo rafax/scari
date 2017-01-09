@@ -1,7 +1,7 @@
-worker:
-	go install ./cmd/scari-worker && SCARI_SERVER="http://localhost:3001/" SCARI_OUTDIR="/tmp/out/" scari-worker
+scari-worker:
+	go install ./cmd/scari-worker && GOOGLE_APPLICATION_CREDENTIALS=scari-8a1786479a6f.json SCARI_SERVER="http://localhost:3001/" SCARI_OUTDIR="/tmp/out/" scari-worker
 
-server:
+scari-server:
 	go install ./cmd/scari-server && scari-server
 
 docker-run: docker-server docker-worker

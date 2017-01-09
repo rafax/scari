@@ -1,7 +1,12 @@
 package services
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
+	"io/ioutil"
+	"net/http"
+	"path"
 	"sync"
 
 	scari "github.com/rafax/scari"
@@ -13,6 +18,7 @@ type JobStore interface {
 	Get(id scari.JobID) (*scari.Job, error)
 	GetAll() ([]scari.Job, error)
 	LeaseOne(scari.LeaseID) (*scari.Job, error)
+	Complete(lid scari.LeaseID, storageID string) (*scari.Job, error)
 }
 
 type JobService interface {
@@ -20,6 +26,7 @@ type JobService interface {
 	Get(id scari.JobID) (*scari.Job, error)
 	GetAll() ([]scari.Job, error)
 	LeaseOne() (*scari.Job, scari.LeaseID, error)
+	Complete(lid scari.LeaseID, storageID string) (*scari.Job, error)
 }
 
 type mapJobStore struct {
@@ -35,6 +42,24 @@ func (m *mapJobStore) Get(id scari.JobID) (*scari.Job, error) {
 	if !ok {
 		return nil, errors.New("Job not found")
 	}
+	return &j, nil
+}
+
+func (m *mapJobStore) Complete(leaseID scari.LeaseID, storageID string) (*scari.Job, error) {
+	m.jobsLock.Lock()
+	defer m.jobsLock.Unlock()
+	jid, ok := m.leasedJobs[leaseID]
+	if !ok {
+		return nil, errors.New("Lease not found")
+	}
+	j, ok := m.jobs[jid]
+	if !ok {
+		return nil, errors.New("Job not found")
+	}
+	delete(m.leasedJobs, leaseID)
+	j.Status = scari.Completed
+	j.StorageID = storageID
+	m.jobs[j.ID] = j
 	return &j, nil
 }
 
@@ -58,10 +83,10 @@ func (m *mapJobStore) Put(j scari.Job) error {
 }
 
 func (m *mapJobStore) LeaseOne(lid scari.LeaseID) (*scari.Job, error) {
+	m.jobsLock.Lock()
+	defer m.jobsLock.Unlock()
 	for _, j := range m.jobs {
 		if j.Status == scari.Pending {
-			m.jobsLock.Lock()
-			defer m.jobsLock.Unlock()
 			j.Status = scari.Processing
 			m.jobs[j.ID] = j
 			m.leasedJobs[lid] = j.ID
@@ -73,11 +98,14 @@ func (m *mapJobStore) LeaseOne(lid scari.LeaseID) (*scari.Job, error) {
 }
 
 type jobService struct {
-	store JobStore
+	store         JobStore
+	storageClient StorageClient
 }
 
 func NewJobService() JobService {
-	return &jobService{store: &mapJobStore{jobs: map[scari.JobID]scari.Job{}, leasedJobs: map[scari.LeaseID]scari.JobID{}}}
+	return &jobService{
+		store:         &mapJobStore{jobs: map[scari.JobID]scari.Job{}, leasedJobs: map[scari.LeaseID]scari.JobID{}},
+		storageClient: &mockStorageClient{client: &http.Client{}}}
 }
 
 func (js *jobService) New(source string, output scari.OutputType) (*scari.Job, error) {
@@ -102,4 +130,46 @@ func (js *jobService) LeaseOne() (*scari.Job, scari.LeaseID, error) {
 		return nil, "", err
 	}
 	return j, lid, nil
+}
+
+func (js *jobService) Complete(lid scari.LeaseID, fileName string) (*scari.Job, error) {
+	sid, err := js.storageClient.Register(fileName)
+	if err != nil {
+		return nil, err
+	}
+	j, err := js.store.Complete(lid, sid)
+	if err != nil {
+		return nil, err
+	}
+	return j, err
+}
+
+type StorageClient interface {
+	Register(string) (string, error)
+}
+
+type mockStorageClient struct {
+	client *http.Client
+}
+
+func (msc *mockStorageClient) Register(fileName string) (string, error) {
+	sfr := scari.StaticFileRequest{FileName: path.Base(fileName)}
+	body, err := json.Marshal(sfr)
+	if err != nil {
+		return "", err
+	}
+	resp, err := msc.client.Post("http://scari-666.appspot.com/files", "application/json", bytes.NewReader(body))
+	if err != nil {
+		return "", err
+	}
+	defer resp.Body.Close()
+	rbody, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", err
+	}
+	sfresp := new(scari.StaticFileResponse)
+	if err = json.Unmarshal(rbody, sfresp); err != nil {
+		return "", err
+	}
+	return sfresp.Id, nil
 }

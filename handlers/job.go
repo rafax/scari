@@ -28,6 +28,7 @@ func (h handlers) Register(r *mux.Router) {
 	r.HandleFunc("/jobs", h.createJob).Methods("POST")
 	r.HandleFunc("/jobs", h.getAllJobs)
 	r.HandleFunc("/jobs/lease", h.leaseJob).Methods("POST")
+	r.HandleFunc("/jobs/{jobID}/complete", h.completeJob).Methods("POST")
 }
 
 func (h handlers) createJob(w http.ResponseWriter, req *http.Request) {
@@ -55,16 +56,37 @@ func (h handlers) leaseJob(w http.ResponseWriter, req *http.Request) {
 	job, lid, err := h.js.LeaseOne()
 	if err != nil {
 		h.r.JSON(w, 500, map[string]string{"error": err.Error()})
+		return
 	}
 	if job == nil {
 		h.r.JSON(w, 204, map[string]string{})
+		return
 	}
 	h.r.JSON(w, 200, scari.LeaseJobResponse{Job: *job, LeaseID: lid})
+}
+
+func (h handlers) completeJob(w http.ResponseWriter, req *http.Request) {
+	cjr := new(CompleteJobRequest)
+	errs := binding.Bind(req, cjr)
+	if errs.Handle(w) {
+		return
+	}
+	j, err := h.js.Complete(cjr.LeaseID, cjr.FileName)
+	if err != nil {
+		h.r.JSON(w, 500, map[string]string{"error": err.Error()})
+		return
+	}
+	h.r.JSON(w, 200, scari.JobResponse{Job: *j})
 }
 
 type JobRequest struct {
 	Source     string `json:"source"`
 	OutputType string `json:"outputType"`
+}
+
+type CompleteJobRequest struct {
+	FileName string        `json:"storageUrl"`
+	LeaseID  scari.LeaseID `json:"leaseId"`
 }
 
 func (jr *JobRequest) FieldMap(req *http.Request) binding.FieldMap {
@@ -87,4 +109,11 @@ func (jr *JobRequest) Validate(req *http.Request, errs binding.Errors) binding.E
 			Message:    "source must use a http(s) scheme"})
 	}
 	return errs
+}
+
+func (cjr *CompleteJobRequest) FieldMap(req *http.Request) binding.FieldMap {
+	return binding.FieldMap{
+		&cjr.LeaseID:  "leaseId",
+		&cjr.FileName: "fileName",
+	}
 }
