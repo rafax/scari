@@ -1,6 +1,3 @@
-# External packages folder
-vendor/
-
 # temporary files from testing
 out/
 # runner files
