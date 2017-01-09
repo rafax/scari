@@ -14,6 +14,7 @@ import (
 	"google.golang.org/appengine"
 	"google.golang.org/appengine/datastore"
 	"google.golang.org/appengine/file"
+	"google.golang.org/appengine/log"
 )
 
 const (
@@ -49,31 +50,36 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func postHandler(w http.ResponseWriter, r *http.Request) {
-	var sfr StaticFileRequest
+	ctx := appengine.NewContext(r)
+	var sfr scari.StaticFileRequest
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
+		log.Errorf(ctx, "Failed to parse request: %v", err)
 		http.Error(w, format(err), 500)
 		return
 	}
 	err = json.Unmarshal(body, &sfr)
 	if err != nil {
+		log.Errorf(ctx, "Failed to parse body as json: %v (%v)", err, string(body))
 		http.Error(w, format(err), 500)
 		return
 	}
-	ctx := appengine.NewContext(r)
 	client, err := storage.NewClient(ctx)
 	if err != nil {
+		log.Errorf(ctx, "Failed to instantiate storage client: %v", err)
 		http.Error(w, format(err), 500)
 		return
 	}
 	bucketName, err := file.DefaultBucketName(ctx)
 	if err != nil {
+		log.Errorf(ctx, "Failed to get default bucket: %v", err)
 		http.Error(w, format(err), 500)
 		return
 	}
 	bucket := client.Bucket(bucketName)
 	_, err = bucket.Object(sfr.FileName).Attrs(ctx)
 	if err != nil {
+		log.Errorf(ctx, "Failed to find file %v: %v", sfr.FileName, err)
 		http.Error(w, format(err), 500)
 		return
 	}
@@ -84,25 +90,19 @@ func postHandler(w http.ResponseWriter, r *http.Request) {
 	}
 	k, err := datastore.Put(ctx, key, &file)
 	if err != nil {
+		log.Errorf(ctx, "Failed to store file in datastore: %v", err)
 		http.Error(w, format(err), 500)
 		return
 	}
 	id := strconv.FormatInt(k.IntID(), 10)
-	resp, err := json.Marshal(StaticFileResponse{Id: id})
+	resp, err := json.Marshal(scari.StaticFileResponse{Id: id})
 	if err != nil {
+		log.Errorf(ctx, "Failed to marshal response: %v", err)
 		http.Error(w, format(err), 500)
 		return
 	}
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(resp)
-}
-
-type StaticFileRequest struct {
-	FileName string `json:"fileName"`
-}
-
-type StaticFileResponse struct {
-	Id string `json:"id"`
 }
 
 type staticFile struct {

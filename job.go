@@ -44,3 +44,11 @@ type LeaseJobResponse struct {
 const (
 	StorageBucketName = "scari-666.appspot.com"
 )
+
+type StaticFileRequest struct {
+	FileName string `json:"fileName"`
+}
+
+type StaticFileResponse struct {
+	Id string `json:"id"`
+}
