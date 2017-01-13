@@ -1,7 +1,7 @@
 {
 	"ImportPath": "github.com/rafax/scari",
 	"GoVersion": "go1.7",
-	"GodepVersion": "v75",
+	"GodepVersion": "v77",
 	"Packages": [
 		"./..."
 	],
