@@ -40,6 +40,10 @@
 			"Rev": "da06d194a00e19ce00d9011a13931c3f6f6887c7"
 		},
 		{
+			"ImportPath": "github.com/gorilla/feeds",
+			"Rev": "441264de03a8117ed530ae8e049d8f601a33a099"
+		},
+		{
 			"ImportPath": "github.com/gorilla/mux",
 			"Comment": "v1.1-27-g757bef9",
 			"Rev": "757bef944d0f21880861c2dd9c871ca543023cba"
