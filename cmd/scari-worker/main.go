@@ -27,6 +27,7 @@ func main() {
 }
 
 func initWorker() worker.Worker {
+	log.SetLevel(log.DebugLevel)
 	apiserver := os.Getenv("SCARI_SERVER")
 	if apiserver == "" {
 		apiserver = "http://localhost:3001/"

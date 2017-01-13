@@ -1,3 +1,5 @@
+// +build appengine
+
 package hello
 
 import (
@@ -46,7 +48,7 @@ func getHandler(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, format(err), 500)
 		return
 	}
-	fmt.Fprintf(w, file.StorageURL)
+	http.Redirect(w, r, file.StorageURL, 301)
 }
 
 func postHandler(w http.ResponseWriter, r *http.Request) {

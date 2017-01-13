@@ -177,16 +177,6 @@
 			"Rev": "08a149cfaee099e6ce4be01c0113a78c85ee1dee"
 		},
 		{
-			"ImportPath": "google.golang.org/appengine/datastore",
-			"Comment": "v1.0.0-21-g08a149c",
-			"Rev": "08a149cfaee099e6ce4be01c0113a78c85ee1dee"
-		},
-		{
-			"ImportPath": "google.golang.org/appengine/file",
-			"Comment": "v1.0.0-21-g08a149c",
-			"Rev": "08a149cfaee099e6ce4be01c0113a78c85ee1dee"
-		},
-		{
 			"ImportPath": "google.golang.org/appengine/internal",
 			"Comment": "v1.0.0-21-g08a149c",
 			"Rev": "08a149cfaee099e6ce4be01c0113a78c85ee1dee"
@@ -218,11 +208,6 @@
 		},
 		{
 			"ImportPath": "google.golang.org/appengine/internal/remote_api",
-			"Comment": "v1.0.0-21-g08a149c",
-			"Rev": "08a149cfaee099e6ce4be01c0113a78c85ee1dee"
-		},
-		{
-			"ImportPath": "google.golang.org/appengine/log",
 			"Comment": "v1.0.0-21-g08a149c",
 			"Rev": "08a149cfaee099e6ce4be01c0113a78c85ee1dee"
 		},
