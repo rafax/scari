@@ -57,7 +57,9 @@ func (h handlers) getFeed(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		h.r.XML(w, 500, map[string]string{"error": err.Error()})
 	}
-	h.r.XML(w, 200, atom)
+	w.WriteHeader(200)
+	w.Header().Set("Content-Type", "application/atom+xml")
+	w.Write([]byte(atom))
 }
 
 func (h handlers) createJob(w http.ResponseWriter, req *http.Request) {
