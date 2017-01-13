@@ -49,7 +49,7 @@ func (h handlers) getFeed(w http.ResponseWriter, req *http.Request) {
 	items := []*feeds.Item{}
 	for _, j := range jobs {
 		if j.StorageID != "" {
-			items = append(items, &feeds.Item{Link: &feeds.Link{Href: "http://scari-666.appspot.com/files/" + j.StorageID}})
+			items = append(items, &feeds.Item{Link: &feeds.Link{Href: "http://scari-666.appspot.com/files/" + j.StorageID}, Created: now, Title: j.Source})
 		}
 	}
 	feed.Items = items
