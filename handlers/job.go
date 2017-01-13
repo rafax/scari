@@ -46,13 +46,12 @@ func (h handlers) getFeed(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		h.r.XML(w, 500, map[string]string{"error": err.Error()})
 	}
-	items := []*feeds.Item{}
+	items := []*feeds.RssItem{}
 	for _, j := range jobs {
 		if j.StorageID != "" {
-			items = append(items, &feeds.Item{
-				Link:    &feeds.Link{Href: "http://scari-666.appspot.com/files/" + j.StorageID, Type: "video/mp4"},
-				Created: now,
-				Title:   j.Source})
+			items = append(items, &feeds.RssItem{
+				Enclosure: &feeds.RssEnclosure{Url: "http://scari-666.appspot.com/files/" + j.StorageID, Type: "video/mp4"},
+				Title:     j.Source})
 		}
 	}
 	feed.Items = items
