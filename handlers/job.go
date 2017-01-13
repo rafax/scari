@@ -56,13 +56,13 @@ func (h handlers) getFeed(w http.ResponseWriter, req *http.Request) {
 		}
 	}
 	feed.Items = items
-	atom, err := feed.ToAtom()
+	rss, err := feed.ToRss()
 	if err != nil {
 		h.r.XML(w, 500, map[string]string{"error": err.Error()})
 	}
 	w.WriteHeader(200)
-	w.Header().Set("Content-Type", "application/atom+xml")
-	w.Write([]byte(atom))
+	w.Header().Set("Content-Type", "application/rss+xml")
+	w.Write([]byte(rss))
 }
 
 func (h handlers) createJob(w http.ResponseWriter, req *http.Request) {
