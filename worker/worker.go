@@ -112,7 +112,6 @@ func (w worker) convert(j scari.Job) (string, error) {
 		params = w.videoParams
 	}
 	c := exec.Command(command, append(params, j.Source)...)
-	c.Dir = w.outDir
 	log.Debugf("Will convert %v with %v", j.ID, c)
 	output, err := c.Output()
 	if err != nil {

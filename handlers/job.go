@@ -3,7 +3,9 @@ package handlers
 import (
 	"net/http"
 	"net/url"
+	"time"
 
+	"github.com/gorilla/feeds"
 	"github.com/gorilla/mux"
 	"github.com/mholt/binding"
 	"github.com/rafax/scari"
@@ -27,8 +29,35 @@ func New(js services.JobService) Handlers {
 func (h handlers) Register(r *mux.Router) {
 	r.HandleFunc("/jobs", h.createJob).Methods("POST")
 	r.HandleFunc("/jobs", h.getAllJobs)
+	r.HandleFunc("/feed", h.getFeed)
 	r.HandleFunc("/jobs/lease", h.leaseJob).Methods("POST")
 	r.HandleFunc("/jobs/{jobID}/complete", h.completeJob).Methods("POST")
+}
+
+func (h handlers) getFeed(w http.ResponseWriter, req *http.Request) {
+	now := time.Now()
+	feed := &feeds.Feed{
+		Title:   "Scari downloads",
+		Link:    &feeds.Link{Href: "http://scari.herokuapp.com/feed"},
+		Author:  &feeds.Author{Name: "Rafal Gajdulewicz"},
+		Created: now,
+	}
+	jobs, err := h.js.GetAll()
+	if err != nil {
+		h.r.XML(w, 500, map[string]string{"error": err.Error()})
+	}
+	items := []*feeds.Item{}
+	for _, j := range jobs {
+		if j.StorageID != "" {
+			items = append(items, &feeds.Item{Link: &feeds.Link{Href: "http://scari-666.appspot.com/files/" + j.StorageID}})
+		}
+	}
+	feed.Items = items
+	atom, err := feed.ToAtom()
+	if err != nil {
+		h.r.XML(w, 500, map[string]string{"error": err.Error()})
+	}
+	h.r.XML(w, 200, atom)
 }
 
 func (h handlers) createJob(w http.ResponseWriter, req *http.Request) {
