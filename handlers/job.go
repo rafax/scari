@@ -46,22 +46,23 @@ func (h handlers) getFeed(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		h.r.XML(w, 500, map[string]string{"error": err.Error()})
 	}
-	items := []*feeds.RssItem{}
+	items := []*feeds.Item{}
 	for _, j := range jobs {
 		if j.StorageID != "" {
-			items = append(items, &feeds.RssItem{
-				Enclosure: &feeds.RssEnclosure{Url: "http://scari-666.appspot.com/files/" + j.StorageID, Type: "video/mp4"},
-				Title:     j.Source})
+			items = append(items, &feeds.Item{
+				Link:    &feeds.Link{Href: "http://scari-666.appspot.com/files/" + j.StorageID, Type: "video/mp4", Rel: "enclosure"},
+				Created: now,
+				Title:   j.Source})
 		}
 	}
 	feed.Items = items
-	rss, err := feed.ToRss()
+	atom, err := feed.ToAtom()
 	if err != nil {
 		h.r.XML(w, 500, map[string]string{"error": err.Error()})
 	}
 	w.WriteHeader(200)
-	w.Header().Set("Content-Type", "application/rss+xml")
-	w.Write([]byte(rss))
+	w.Header().Set("Content-Type", "application/atom+xml")
+	w.Write([]byte(atom))
 }
 
 func (h handlers) createJob(w http.ResponseWriter, req *http.Request) {
