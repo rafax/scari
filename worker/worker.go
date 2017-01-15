@@ -76,7 +76,7 @@ func (w worker) Process() ([]ProcessedJob, error) {
 	if err != nil {
 		return nil, err
 	}
-	return []ProcessedJob{}, err
+	return []ProcessedJob{pj}, err
 }
 
 func (w worker) fetch() (*scari.Job, scari.LeaseID, error) {
@@ -112,10 +112,10 @@ func (w worker) convert(j scari.Job) (string, error) {
 		params = w.videoParams
 	}
 	c := exec.Command(command, append(params, j.Source)...)
-	c.Dir = w.outDir
 	log.Debugf("Will convert %v with %v", j.ID, c)
 	output, err := c.Output()
 	if err != nil {
+		log.Error("Error when converting, output: ", string(output))
 		return "", err
 	}
 	var out youtubeDLOutput
