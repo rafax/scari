@@ -76,7 +76,7 @@ func (w worker) Process() ([]ProcessedJob, error) {
 	if err != nil {
 		return nil, err
 	}
-	return []ProcessedJob{}, err
+	return []ProcessedJob{pj}, err
 }
 
 func (w worker) fetch() (*scari.Job, scari.LeaseID, error) {
