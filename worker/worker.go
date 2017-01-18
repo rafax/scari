@@ -115,7 +115,7 @@ func (w worker) convert(j scari.Job) (string, error) {
 	log.Debugf("Will convert %v with %v", j.ID, c)
 	output, err := c.Output()
 	if err != nil {
-		log.Error("Error when converting, output: ", string(output))
+		log.Errorf("Error %v when converting, output: %v", err, string(err.(*exec.ExitError).Stderr))
 		return "", err
 	}
 	var out youtubeDLOutput
