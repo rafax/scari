@@ -1,8 +1,14 @@
 sudo: required
-
 language: go
-
 go:
-  - 1.8.x
-
+- 1.8.x
+install:
+- go get github.com/tools/godep
 script: make ci
+deploy:
+  provider: heroku
+  api_key:
+    secure: c/2FOHjit2f/YWeC+HRSJdlQifKCyBBgFHqXPPVvLnv9KiUJUjVYuLRs3Q1Si9CMPkNS9zz/+MvnS4tACe61V5AAF4RZ7MFl0Jq1m7viAnxxUDgTx2CseTBsAPFnilWM5DMNuSL46odrEB38LDR8R1aeiiUN8hs9lM/qsFSZyaQLw8v6pba66sWpA8jzsw/M6SH15V3fxDS3+JI3arrTBFUXEYQguDsi52QIvfGIdDptfddAZ8ieWNonQp/nLRT7PTyGoE39muS3g/NyUyIPbIlz/iFbMMcmN0VAsiRt9jdszquzLRj9g3k6wU+9m0cFM+AUcmXVnNs+NjjaOhRmY3he0PZlphmp5FwV2LjRx77j5AE/00kO4W9KIR9W8JFKrMB2pQLblYe85wI67NbPBVwLJtHBL8QYUEMrCdoKkjdwclwJWHA7XYwDcRgCxaccVnEAlDBKbDph2EB47TI+ohFvWHc5ewaFgOvRViZtimFtv+5Dg2I3ML7sghT1UbC9+iyQMT/CWQp6yxtw1pCTaU/50EAOU+niv7/UXukyVKUYnTCWP6LSAi+rFfQpimkwlB/gGoQo6PKh9durUreUVSjIOs00p4NAc+9LTwajLYawtCkjXOC+cTSnLi31pTD70Jhew11fyINdUKjTWQ5Xk08+KGyqYJJJ8wF1VmCTdeo=
+  app: scari
+  on:
+    repo: rafax/scari
