@@ -20,3 +20,8 @@ docker-build-worker:
 
 test:
 	go test ./...
+
+deps:
+	godep restore 
+
+ci: deps test
