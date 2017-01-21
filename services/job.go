@@ -103,9 +103,8 @@ type jobService struct {
 }
 
 func NewJobService() JobService {
-	key := scari.JobID(uuid.NewV4().String())
 	return &jobService{
-		store:         &mapJobStore{jobs: map[scari.JobID]scari.Job{key: scari.Job{ID: key, StorageID: "5644406560391168"}}, leasedJobs: map[scari.LeaseID]scari.JobID{}},
+		store:         &mapJobStore{jobs: map[scari.JobID]scari.Job{}, leasedJobs: map[scari.LeaseID]scari.JobID{}},
 		storageClient: &mockStorageClient{client: &http.Client{}}}
 }
 
