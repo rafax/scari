@@ -17,13 +17,13 @@ const (
 	VIDEO = "video"
 )
 
-type JobStatus int
+type JobStatus string
 
 const (
-	Pending    = iota
-	Processing = 1
-	Completed  = 2
-	Failed     = 3
+	Pending    = "Pending"
+	Processing = "Processing"
+	Completed  = "Completed"
+	Failed     = "Failed"
 )
 
 type LeaseID string
