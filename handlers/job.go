@@ -32,6 +32,7 @@ func (h handlers) Register(r *mux.Router) {
 	r.HandleFunc("/feed", h.getFeed)
 	r.HandleFunc("/jobs/lease", h.leaseJob).Methods("POST")
 	r.HandleFunc("/jobs/{jobID}/complete", h.completeJob).Methods("POST")
+	r.HandleFunc("/status", h.status)
 }
 
 func (h handlers) getFeed(w http.ResponseWriter, req *http.Request) {
@@ -111,6 +112,10 @@ func (h handlers) completeJob(w http.ResponseWriter, req *http.Request) {
 		return
 	}
 	h.r.JSON(w, 200, scari.JobResponse{Job: *j})
+}
+
+func (h handlers) status(w http.ResponseWriter, _ *http.Request) {
+	h.r.JSON(w, 200, map[string]string{"status": "OK"})
 }
 
 type JobRequest struct {

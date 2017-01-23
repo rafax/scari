@@ -17,9 +17,6 @@ func main() {
 	n.Use(negroni.NewLogger())
 	router := mux.NewRouter()
 
-	router.HandleFunc("/status", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
 	n.Use(negroni.NewRecovery())
 	handlers.New(js).Register(router)
 	n.UseHandler(router)
