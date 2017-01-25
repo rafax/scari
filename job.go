@@ -3,11 +3,11 @@ package scari
 type JobID string
 
 type Job struct {
-	ID        JobID
-	Output    OutputType
-	Source    string
-	Status    JobStatus
-	StorageID string
+	ID        JobID      `json:"id"`
+	Output    OutputType `json:"output"`
+	Source    string     `json:"source"`
+	Status    JobStatus  `json:"status"`
+	StorageID string     `json:"storageId,omitempty"`
 }
 
 type OutputType string
