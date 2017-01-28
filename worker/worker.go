@@ -10,6 +10,7 @@ import (
 	"os"
 	"os/exec"
 	"path"
+	"strings"
 	"syscall"
 
 	"cloud.google.com/go/storage"
@@ -129,8 +130,12 @@ func (w worker) convert(j scari.Job) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	log.Debugf("Converted %v to %v", j.ID, out.FileName)
-	return out.FileName, nil
+	fileName := out.FileName
+	if j.Output == scari.AUDIO {
+		fileName = strings.Replace(fileName, path.Ext(fileName), ".mp3", 1)
+	}
+	log.Debugf("Converted %v to %v", j.ID, fileName)
+	return fileName, nil
 }
 
 func (w worker) upload(filePath string) (string, bool, error) {
