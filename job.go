@@ -52,3 +52,15 @@ type StaticFileRequest struct {
 type StaticFileResponse struct {
 	Id string `json:"id"`
 }
+
+type JobStore interface {
+	Put(j Job) error
+	Get(id JobID) (*Job, error)
+	GetAll() ([]Job, error)
+	LeaseOne(LeaseID) (*Job, error)
+	Complete(lid LeaseID, storageID string) (*Job, error)
+}
+
+type StorageClient interface {
+	Register(string) (string, error)
+}
