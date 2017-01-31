@@ -11,7 +11,7 @@ import (
 )
 
 func NewStorageClient() scari.StorageClient {
-	return &mockStorageClient{}
+	return &mockStorageClient{client: &http.Client{}}
 }
 
 type mockStorageClient struct {
