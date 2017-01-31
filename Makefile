@@ -5,7 +5,7 @@ scari-worker:
 	go install ./cmd/scari-worker && GOOGLE_APPLICATION_CREDENTIALS=./cmd/scari-worker/scari-8a1786479a6f.json SCARI_SERVER="http://localhost:3001/" SCARI_OUTDIR="/tmp/out/" scari-worker
 
 scari-server:
-	go install ./cmd/scari-server && scari-server
+	go install ./cmd/scari-server && DATABASE_URL='user=scari dbname=scari sslmode=disable' scari-server
 
 docker-run: scari-server docker-worker
 
@@ -21,4 +21,8 @@ docker-build-worker:
 test:
 	go test ./...
 
-ci: test
+acceptance-test:
+	(go install ./cmd/scari-server && DATABASE_URL='user=scari dbname=scari sslmode=disable' scari-server &) && (cd acceptance_tests && mix test) && killall scari-server
+
+
+ci: test acceptance-test
