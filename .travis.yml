@@ -1,8 +1,10 @@
 language: go
+language: elixir
 go:
 - 1.8.x
 install:
 - go get github.com/tools/godep
+- (cd acceptance_tests && mix deps.get)
 script: make ci
 deploy:
   provider: heroku
