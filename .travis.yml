@@ -1,7 +1,10 @@
+sudo: required
+dist: trusty
 language: go
-language: elixir
 go:
 - 1.8.x
+elixir:
+- 1.4
 install:
 - go get github.com/tools/godep
 - (cd acceptance_tests && mix deps.get)
