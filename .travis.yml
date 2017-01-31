@@ -5,6 +5,8 @@ go:
 - 1.8.x
 elixir:
 - 1.4
+otp_release: 19.1
+
 install:
 - go get github.com/tools/godep
 - (cd acceptance_tests && mix deps.get)
