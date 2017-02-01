@@ -10,6 +10,7 @@ install:
 - eval "$(GIMME_GO_VERSION=1.8.x gimme)"
 - go get github.com/tools/godep
 - (cd acceptance_tests && mix local.hex --force &&  mix deps.get)
+- godep restore
 script: make ci
 deploy:
   provider: heroku
