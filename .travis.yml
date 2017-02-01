@@ -12,6 +12,8 @@ install:
 - (cd acceptance_tests && mix local.hex --force &&  mix deps.get)
 - godep restore
 - go version
+- export GOPATH=$HOME/gopath
+- export PATH=$HOME/gopath/bin:$PATH
 script: make ci
 deploy:
   provider: heroku
