@@ -7,13 +7,14 @@ elixir:
 install:
 - sudo curl -sL -o /usr/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
 - sudo chmod a+x /usr/bin/gimme
-- eval "$(GIMME_GO_VERSION=1.8.x gimme)"
+- eval "$(GIMME_GO_VERSION=1.8 gimme)"
 - go get github.com/tools/godep
 - (cd acceptance_tests && mix local.hex --force &&  mix deps.get)
-- godep restore
-- go version
 - export GOPATH=$HOME/gopath
 - export PATH=$HOME/gopath/bin:$PATH
+- godep restore
+- go version
+
 script: make ci
 deploy:
   provider: heroku
