@@ -8,11 +8,12 @@ import (
 	"github.com/urfave/negroni"
 
 	"github.com/rafax/scari/handlers"
+	"github.com/rafax/scari/mock"
 	"github.com/rafax/scari/services"
 )
 
 func main() {
-	js := services.NewJobService()
+	js := services.NewJobService(mock.NewStore(), mock.NewStorageClient())
 	n := negroni.New()
 	n.Use(negroni.NewLogger())
 	router := mux.NewRouter()
