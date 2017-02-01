@@ -5,10 +5,10 @@ elixir:
 - 1.4
 
 install:
-- curl -sL -o ~/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
-- chmod +x ~/bin/gimme
+- sudo curl -sL -o /usr/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
+- sudo chmod a+x /usr/bin/gimme
 - eval "$(GIMME_GO_VERSION=1.8.x gimme)"
-- go get github.com/tools/godep
+- go get github.com/tools/godepgi
 - (cd acceptance_tests && mix deps.get)
 script: make ci
 deploy:
