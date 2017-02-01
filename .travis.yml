@@ -1,14 +1,14 @@
 sudo: required
 dist: trusty
-language: go
-go:
-- 1.8.x
+language: elixir
+elixir:
+- 1.4
 
 install:
+- curl -sL -o ~/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
+- chmod +x ~/bin/gimme
+- eval "$(GIMME_GO_VERSION=1.8.x gimme)"
 - go get github.com/tools/godep
-- wget https://packages.erlang-solutions.com/erlang-solutions_1.0_all.deb && sudo dpkg -i erlang-solutions_1.0_all.deb
-- sudo apt-get update
-- yes | sudo apt-get install -y elixir
 - (cd acceptance_tests && mix deps.get)
 script: make ci
 deploy:
