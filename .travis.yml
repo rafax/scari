@@ -7,7 +7,7 @@ elixir:
 install:
 - sudo curl -sL -o /usr/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
 - sudo chmod a+x /usr/bin/gimme
-- (cd acceptance_tests && mix local.hex --force &&  mix deps.get)
+- (cd acceptance_tests && mix local.hex --force && mix local.rebar --force &&  mix deps.get)
 - export GOPATH=$HOME/gopath
 - export PATH=$HOME/gopath/bin:$PATH
 - mkdir -p $HOME/gopath/src/github.com/rafax/scari
