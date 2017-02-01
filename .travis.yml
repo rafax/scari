@@ -9,7 +9,7 @@ install:
 - sudo chmod a+x /usr/bin/gimme
 - eval "$(GIMME_GO_VERSION=1.8.x gimme)"
 - go get github.com/tools/godep
-- (cd acceptance_tests && mix --force local.hex && deps.get)
+- (cd acceptance_tests && mix local.hex --force &&  mix deps.get)
 script: make ci
 deploy:
   provider: heroku
