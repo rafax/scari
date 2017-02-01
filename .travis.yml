@@ -7,13 +7,18 @@ elixir:
 install:
 - sudo curl -sL -o /usr/bin/gimme https://raw.githubusercontent.com/travis-ci/gimme/master/gimme
 - sudo chmod a+x /usr/bin/gimme
-- eval "$(GIMME_GO_VERSION=1.8 gimme)"
-- go get github.com/tools/godep
 - (cd acceptance_tests && mix local.hex --force &&  mix deps.get)
 - export GOPATH=$HOME/gopath
 - export PATH=$HOME/gopath/bin:$PATH
-- godep restore
+- mkdir -p $HOME/gopath/src/github.com/rafax/scari
+- rsync -az ${TRAVIS_BUILD_DIR}/ $HOME/gopath/src/github.com/rafax/scari/
+- export TRAVIS_BUILD_DIR=$HOME/gopath/src/github.com/rafax/scari
+- cd $HOME/gopath/src/github.com/rafax/scari
+- eval "$(GIMME_GO_VERSION=1.8rc1 gimme)"
 - go version
+- go get github.com/tools/godep
+- godep restore
+
 
 script: make ci
 deploy:
