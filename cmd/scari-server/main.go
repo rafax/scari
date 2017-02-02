@@ -13,6 +13,11 @@ import (
 )
 
 func main() {
+	// db, err := sql.Open("postgres", os.Getenv("DATABASE_URL"))
+	// if err != nil {
+	// 	panic(err)
+	// }
+	//pgStore := postgres.New(db)
 	js := services.NewJobService(mock.NewStore(), mock.NewStorageClient())
 	n := negroni.New()
 	n.Use(negroni.NewLogger())
