@@ -83,6 +83,7 @@ func (h handlers) getAllJobs(w http.ResponseWriter, req *http.Request) {
 	jobs, err := h.js.GetAll()
 	if err != nil {
 		h.r.JSON(w, 500, map[string]string{"error": err.Error()})
+		return
 	}
 	h.r.JSON(w, 200, scari.JobsResponse{Jobs: jobs})
 }

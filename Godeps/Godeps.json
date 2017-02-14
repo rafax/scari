@@ -1,6 +1,6 @@
 {
 	"ImportPath": "github.com/rafax/scari",
-	"GoVersion": "go1.7",
+	"GoVersion": "go1.8",
 	"GodepVersion": "v77",
 	"Packages": [
 		"./..."
@@ -49,9 +49,19 @@
 			"Rev": "757bef944d0f21880861c2dd9c871ca543023cba"
 		},
 		{
+			"ImportPath": "github.com/jackc/pgx",
+			"Comment": "v2.9.0-123-ga52a6bd",
+			"Rev": "a52a6bd5558b1450ee69178739caf0489c23c3e6"
+		},
+		{
 			"ImportPath": "github.com/mholt/binding",
 			"Comment": "v0.3.0-5-gda15bc6",
 			"Rev": "da15bc6a25d54500d6d19bf8bcdea7efde27bf0c"
+		},
+		{
+			"ImportPath": "github.com/pkg/errors",
+			"Comment": "v0.8.0-2-g248dadf",
+			"Rev": "248dadf4e9068a0b3e79f02ed0a610d935de5302"
 		},
 		{
 			"ImportPath": "github.com/satori/go.uuid",
