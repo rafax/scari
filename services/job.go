@@ -11,6 +11,7 @@ type JobService interface {
 	GetAll() ([]scari.Job, error)
 	LeaseOne() (*scari.Job, scari.LeaseID, error)
 	Complete(lid scari.LeaseID, storageID string) (*scari.Job, error)
+	Status() map[string]error
 }
 
 type jobService struct {
@@ -58,4 +59,8 @@ func (js *jobService) Complete(lid scari.LeaseID, fileName string) (*scari.Job, 
 		return nil, err
 	}
 	return j, err
+}
+
+func (js *jobService) Status() map[string]error {
+	return map[string]error{"store": js.store.Status()}
 }

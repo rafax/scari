@@ -54,6 +54,11 @@
 			"Rev": "a52a6bd5558b1450ee69178739caf0489c23c3e6"
 		},
 		{
+			"ImportPath": "github.com/jackc/pgx/stdlib",
+			"Comment": "v2.9.0-123-ga52a6bd",
+			"Rev": "a52a6bd5558b1450ee69178739caf0489c23c3e6"
+		},
+		{
 			"ImportPath": "github.com/mholt/binding",
 			"Comment": "v0.3.0-5-gda15bc6",
 			"Rev": "da15bc6a25d54500d6d19bf8bcdea7efde27bf0c"

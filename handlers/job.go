@@ -127,7 +127,15 @@ func (h handlers) completeJob(w http.ResponseWriter, req *http.Request) {
 }
 
 func (h handlers) status(w http.ResponseWriter, _ *http.Request) {
-	h.r.JSON(w, 200, map[string]string{"status": "OK"})
+	errs := h.js.Status()
+	for _, v := range errs {
+		if v != nil {
+			h.r.JSON(w, 200, map[string]interface{}{"status": "DOWN", "errors": errs})
+			return
+		}
+	}
+	h.r.JSON(w, 200, map[string]string{"status": "UP"})
+
 }
 
 type JobRequest struct {

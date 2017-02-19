@@ -5,6 +5,7 @@ import (
 	"time"
 
 	"github.com/jackc/pgx"
+	"github.com/jackc/pgx/stdlib"
 	"github.com/pkg/errors"
 	"github.com/rafax/scari"
 )
@@ -101,6 +102,14 @@ func (j *JobModel) toJob() scari.Job {
 		Status:    scari.JobStatus(j.Status),
 		StorageID: j.StorageID.String,
 	}
+}
+
+func (ps *postgresStore) Status() error {
+	conn, err := stdlib.OpenFromConnPool(ps.pool)
+	if err != nil {
+		return err
+	}
+	return conn.Ping()
 }
 
 const schema = `
