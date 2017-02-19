@@ -15,8 +15,8 @@ install:
 - cd $HOME/gopath/src/github.com/rafax/scari
 - eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=1.8rc1 bash)"
 - go version
-- go get github.com/tools/godep
-- godep restore
+# - go get github.com/tools/godep
+# - godep restore
 - psql -c 'create database scari;' -U postgres
 - psql -c 'create user scari;' -U postgres
 
