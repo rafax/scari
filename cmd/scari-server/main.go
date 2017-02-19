@@ -15,6 +15,7 @@ import (
 )
 
 func main() {
+	log.Println("Got [%v] for Postgres url", os.Getenv("DATABASE_URL"))
 	js := services.NewJobService(postgres.New(os.Getenv("DATABASE_URL")), mock.NewStorageClient())
 	n := negroni.New()
 	n.Use(negroni.NewLogger())
