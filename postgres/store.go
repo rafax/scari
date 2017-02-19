@@ -45,7 +45,7 @@ func (ps *postgresStore) Get(id scari.JobID) (*scari.Job, error) {
 	return &j, nil
 }
 func (ps *postgresStore) GetAll() ([]scari.Job, error) {
-	rows, err := ps.pool.Query("SELECT id, output, source, status, storage_id, lease_id FROM Jobs")
+	rows, err := ps.pool.Query(selectAll)
 	if err != nil {
 		return nil, errors.WithMessage(err, "When getting all jobs")
 	}
@@ -61,7 +61,7 @@ func (ps *postgresStore) GetAll() ([]scari.Job, error) {
 	return res, nil
 }
 func (ps *postgresStore) LeaseOne(lid scari.LeaseID) (*scari.Job, error) {
-	row := ps.pool.QueryRow("UPDATE jobs SET status = $1, lease_id = $2 WHERE id =(SELECT id FROM jobs WHERE status = 'Pending' LIMIT 1 FOR UPDATE SKIP LOCKED) RETURNING id, output, source, status, storage_id, lease_id", scari.Pending, lid)
+	row := ps.pool.QueryRow(leaseOne, scari.Pending, lid)
 	jm := JobModel{}
 	err := row.Scan(&jm.ID, &jm.Output, &jm.Source, &jm.Status, &jm.StorageID, &jm.LeaseID)
 	if err != nil {
@@ -74,7 +74,7 @@ func (ps *postgresStore) LeaseOne(lid scari.LeaseID) (*scari.Job, error) {
 	return &j, nil
 }
 func (ps *postgresStore) Complete(lid scari.LeaseID, storageID string) (*scari.Job, error) {
-	row := ps.pool.QueryRow("UPDATE jobs SET status = $1, storage_id = $2 WHERE id =(SELECT id FROM jobs WHERE lease_id = $3 LIMIT 1 FOR UPDATE SKIP LOCKED) RETURNING id, output, source, status, storage_id, lease_id ", scari.Completed, storageID, lid)
+	row := ps.pool.QueryRow(complete, scari.Completed, storageID, lid)
 	jm := JobModel{}
 	err := row.Scan(&jm.ID, &jm.Output, &jm.Source, &jm.Status, &jm.StorageID, &jm.LeaseID)
 	if err != nil {
@@ -113,4 +113,10 @@ const schema = `
         lease_id text NULL
     )`
 
-// DROP TABLE Jobs
+const selectAll = `SELECT id, output, source, status, storage_id, lease_id FROM Jobs`
+const leaseOne = `UPDATE jobs SET status = $1, lease_id = $2 
+WHERE id =(SELECT id FROM jobs WHERE status = 'Pending' LIMIT 1 FOR UPDATE SKIP LOCKED) 
+RETURNING id, output, source, status, storage_id, lease_id`
+const complete = `UPDATE jobs SET status = $1, storage_id = $2 
+WHERE id =(SELECT id FROM jobs WHERE lease_id = $3 LIMIT 1 FOR UPDATE SKIP LOCKED) 
+RETURNING id, output, source, status, storage_id, lease_id`
