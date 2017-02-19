@@ -15,8 +15,11 @@ import (
 )
 
 func main() {
-	log.Println("Got [%v] for Postgres url", os.Getenv("DATABASE_URL"))
-	js := services.NewJobService(postgres.New(os.Getenv("DATABASE_URL")), mock.NewStorageClient())
+	pgConn := os.Getenv("DATABASE_URL")
+	if pgConn == "" {
+		pgConn = "postgresql://scari@localhost:5432/scari?sslmode=disable"
+	}
+	js := services.NewJobService(postgres.New(pgConn), mock.NewStorageClient())
 	n := negroni.New()
 	n.Use(negroni.NewLogger())
 	router := mux.NewRouter()

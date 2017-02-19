@@ -14,8 +14,8 @@ type postgresStore struct {
 	pool *pgx.ConnPool
 }
 
-func New(connDSN string) scari.JobStore {
-	conn, err := pgx.ParseDSN(connDSN)
+func New(connURI string) scari.JobStore {
+	conn, err := pgx.ParseURI(connURI)
 	if err != nil {
 		panic(err)
 	}
