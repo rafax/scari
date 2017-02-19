@@ -6,13 +6,13 @@ defmodule HappyPathTest do
   @source "https://www.youtube.com/watch?v=zbh0qhGmJ9U"
   @output "audio"
 
-  test "created job should appear in the list of all jobs" do
-    jobId = create_job()
+  test "created job should be returned by GET" do
+    job_id = create_job()
 
-    case HTTPoison.get(@jobsUrl) do
+    case HTTPoison.get(@jobsUrl<>"/"<>job_id) do
       {:ok, %HTTPoison.Response{status_code: 200, body: body}} ->
-        jobs = Poison.Parser.parse!(body)["jobs"]
-        assert true == Enum.any?(jobs, fn(x) -> x["id"] == jobId end)
+        job = Poison.Parser.parse!(body)["job"]
+        assert job["id"]==job_id
     end
   end
 

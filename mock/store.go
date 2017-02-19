@@ -67,6 +67,10 @@ func (m *mapJobStore) Put(j scari.Job) error {
 	return nil
 }
 
+func (m *mapJobStore) Status() error {
+	return nil
+}
+
 func (m *mapJobStore) LeaseOne(lid scari.LeaseID) (*scari.Job, error) {
 	m.jobsLock.Lock()
 	defer m.jobsLock.Unlock()

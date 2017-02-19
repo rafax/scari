@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"net/http"
 	"os"
 
@@ -9,11 +10,12 @@ import (
 
 	"github.com/rafax/scari/handlers"
 	"github.com/rafax/scari/mock"
+	"github.com/rafax/scari/postgres"
 	"github.com/rafax/scari/services"
 )
 
 func main() {
-	js := services.NewJobService(mock.NewStore(), mock.NewStorageClient())
+	js := services.NewJobService(postgres.New(os.Getenv("DATABASE_URL")), mock.NewStorageClient())
 	n := negroni.New()
 	n.Use(negroni.NewLogger())
 	router := mux.NewRouter()
@@ -26,5 +28,5 @@ func main() {
 	if port == "" {
 		port = "3001"
 	}
-	http.ListenAndServe(":"+port, n)
+	log.Fatal(http.ListenAndServe(":"+port, n))
 }

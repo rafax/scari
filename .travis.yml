@@ -1,6 +1,12 @@
+dist: trusty
 language: elixir
 elixir:
 - 1.4
+
+services:
+  - postgresql
+addons:
+  postgresql: "9.6"
 
 install:
 - (cd acceptance_tests && mix local.hex --force && mix local.rebar --force && mix deps.get)
@@ -10,10 +16,10 @@ install:
 - rsync -az ${TRAVIS_BUILD_DIR}/ $HOME/gopath/src/github.com/rafax/scari/
 - export TRAVIS_BUILD_DIR=$HOME/gopath/src/github.com/rafax/scari
 - cd $HOME/gopath/src/github.com/rafax/scari
-- eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=1.8rc1 bash)"
+- eval "$(curl -sL https://raw.githubusercontent.com/travis-ci/gimme/master/gimme | GIMME_GO_VERSION=1.8 bash)"
 - go version
-- go get github.com/tools/godep
-- godep restore
+- psql -c 'create database scari;' -U postgres
+- psql -c 'create user scari;' -U postgres
 
 
 script: make ci

@@ -31,6 +31,7 @@ func (h handlers) Register(r *mux.Router) {
 	r.HandleFunc("/jobs", h.getAllJobs)
 	r.HandleFunc("/feed", h.getFeed)
 	r.HandleFunc("/jobs/lease", h.leaseJob).Methods("POST")
+	r.HandleFunc("/jobs/{jobID}", h.getJob).Methods("GET")
 	r.HandleFunc("/jobs/{jobID}/complete", h.completeJob).Methods("POST")
 	r.HandleFunc("/status", h.status)
 }
@@ -79,10 +80,21 @@ func (h handlers) createJob(w http.ResponseWriter, req *http.Request) {
 	h.r.JSON(w, 200, scari.JobResponse{Job: *j})
 }
 
+func (h handlers) getJob(w http.ResponseWriter, req *http.Request) {
+	jid := mux.Vars(req)["jobID"]
+	job, err := h.js.Get(scari.JobID(jid))
+	if err != nil {
+		h.r.JSON(w, 500, map[string]string{"error": err.Error()})
+		return
+	}
+	h.r.JSON(w, 200, scari.JobResponse{Job: *job})
+}
+
 func (h handlers) getAllJobs(w http.ResponseWriter, req *http.Request) {
 	jobs, err := h.js.GetAll()
 	if err != nil {
 		h.r.JSON(w, 500, map[string]string{"error": err.Error()})
+		return
 	}
 	h.r.JSON(w, 200, scari.JobsResponse{Jobs: jobs})
 }
@@ -115,7 +127,15 @@ func (h handlers) completeJob(w http.ResponseWriter, req *http.Request) {
 }
 
 func (h handlers) status(w http.ResponseWriter, _ *http.Request) {
-	h.r.JSON(w, 200, map[string]string{"status": "OK"})
+	errs := h.js.Status()
+	for _, v := range errs {
+		if v != nil {
+			h.r.JSON(w, 200, map[string]interface{}{"status": "DOWN", "errors": errs})
+			return
+		}
+	}
+	h.r.JSON(w, 200, map[string]string{"status": "UP"})
+
 }
 
 type JobRequest struct {

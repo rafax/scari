@@ -59,6 +59,7 @@ type JobStore interface {
 	GetAll() ([]Job, error)
 	LeaseOne(LeaseID) (*Job, error)
 	Complete(lid LeaseID, storageID string) (*Job, error)
+	Status() error
 }
 
 type StorageClient interface {

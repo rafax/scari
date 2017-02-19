@@ -19,7 +19,7 @@ docker-build-worker:
 	docker build --no-cache cmd/scari-worker -t=gdlwcz/scari-worker:latest
 
 test:
-	go test ./...
+	go test $(go list ./... | grep -v vendor)
 
 acceptance-test:
 	(go install ./cmd/scari-server && DATABASE_URL='user=scari dbname=scari sslmode=disable' scari-server &) && (cd acceptance_tests && mix test) && killall scari-server
