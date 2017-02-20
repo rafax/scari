@@ -109,7 +109,11 @@ func (ps *postgresStore) Status() error {
 	if err != nil {
 		return err
 	}
-	return conn.Ping()
+	err = conn.Ping()
+	if err != nil {
+		return err
+	}
+	return conn.Close()
 }
 
 const schema = `
