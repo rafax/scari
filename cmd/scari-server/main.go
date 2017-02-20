@@ -7,6 +7,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
+	newrelic "github.com/yadvendar/negroni-newrelic-go-agent"
 
 	"github.com/rafax/scari/handlers"
 	"github.com/rafax/scari/mock"
@@ -21,6 +22,12 @@ func main() {
 	}
 	js := services.NewJobService(postgres.New(pgConn), mock.NewStorageClient())
 	n := negroni.New()
+	newRelicKey := os.Getenv("SCARI_NEW_RELIC_LICENCE_KEY")
+	if newRelicKey != "" {
+		config := newrelic.NewConfig("scari", newRelicKey)
+		newRelicMiddleware, _ := newrelic.New(config)
+		n.Use(newRelicMiddleware)
+	}
 	n.Use(negroni.NewLogger())
 	router := mux.NewRouter()
 
