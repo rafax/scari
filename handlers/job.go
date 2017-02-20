@@ -130,7 +130,7 @@ func (h handlers) status(w http.ResponseWriter, _ *http.Request) {
 	errs := h.js.Status()
 	for _, v := range errs {
 		if v != nil {
-			h.r.JSON(w, 200, map[string]interface{}{"status": "DOWN", "errors": errs})
+			h.r.JSON(w, 500, map[string]interface{}{"status": "DOWN", "errors": errs})
 			return
 		}
 	}
