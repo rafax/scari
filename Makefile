@@ -5,7 +5,7 @@ scari-worker:
 	go install ./cmd/scari-worker && GOOGLE_APPLICATION_CREDENTIALS=./cmd/scari-worker/scari-8a1786479a6f.json SCARI_SERVER="http://localhost:3001/" SCARI_OUTDIR="/tmp/out/" scari-worker
 
 scari-server:
-	go install ./cmd/scari-server && scari-server
+	go install ./cmd/scari-server && HTTP_LOG=truescari-server
 
 docker-run: scari-server docker-worker
 
@@ -17,6 +17,9 @@ docker-push-worker:	docker-build-worker
 
 docker-build-worker:
 	docker build --no-cache cmd/scari-worker -t=gdlwcz/scari-worker:latest
+
+docker-build-server:
+	(cd cmd/scari-server && GOOS=linux go build -v && docker build .)
 
 test:
 	go test $(go list ./... | grep -v vendor)

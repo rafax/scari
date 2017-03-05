@@ -28,7 +28,9 @@ func main() {
 		newRelicMiddleware, _ := newrelic.New(config)
 		n.Use(newRelicMiddleware)
 	}
-	n.Use(negroni.NewLogger())
+	if os.Getenv("HTTP_LOG") == "true" {
+		n.Use(negroni.NewLogger())
+	}
 	router := mux.NewRouter()
 
 	n.Use(negroni.NewRecovery())
